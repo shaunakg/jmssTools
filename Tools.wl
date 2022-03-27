@@ -23,7 +23,7 @@ MatrixTransform::usage = "";
 Surdify::usage = "Converts expressions with fractional powers to surd form.";
 NormalLine::usage = "";
 FindLine::usage = "";
-RFTest::usage == "";;
+RFTest::usage == "";
 
 
 DecimalPlaces = DecimalPlaces;
@@ -376,7 +376,7 @@ DetailedPlot[exp_, args__, opts:OptionsPattern[]] :=
 				];
 				
 				(* vertical *)
-				funran = Reduce[Reduce[System`FunctionDiscontinuities[currentExpression,var]&&startPoint<=var<=endPoint,var,Reals]//Simplify,var];
+				funran = Reduce[Reduce[System`FunctionDiscontinuities[currentExpression,var]&&(startPoint-1)<=var<=(1+endPoint),var,Reals]//Simplify,var];
 				discon = {};
 				Table[
 				Table[
@@ -391,7 +391,21 @@ DetailedPlot[exp_, args__, opts:OptionsPattern[]] :=
 					(Limit[currentExpression,var->(discon[[n]]),Direction->-1]//Abs)===Infinity
 					],
 					vAsses = Append[vAsses,discon[[n]]]
-					]
+					];
+					If[Limit[currentExpression,var->(discon[[n]]),Direction->1]//N === (currentExpression/.var->discon[[n]])//N && ((currentExpression/.var->discon[[n]])//N)\[Element]Reals,
+						points[ClosedHole] = Append[points[ClosedHole],{discon[[n]],Limit[currentExpression,var->(discon[[n]]),Direction->1]}]
+					,
+						If[(Limit[currentExpression,var->(discon[[n]]),Direction->1]//N )\[Element]Reals,
+							points[OpenHole] = Append[points[ClosedHole],{discon[[n]],Limit[currentExpression,var->(discon[[n]]),Direction->1]}]
+						]
+					];
+					If[Limit[currentExpression,var->(discon[[n]]),Direction->-1]//N === (currentExpression/.var->discon[[n]])//N && ((currentExpression/.var->discon[[n]])//N)\[Element]Reals,
+						points[ClosedHole] = Append[points[ClosedHole],{discon[[n]],Limit[currentExpression,var->(discon[[n]]),Direction->1]}]
+					,
+						If[(Limit[currentExpression,var->(discon[[n]]),Direction->-1]//N )\[Element]Reals,
+							points[OpenHole] = Append[points[ClosedHole],{discon[[n]],Limit[currentExpression,var->(discon[[n]]),Direction->1]}]
+						]
+					];
 				,{n,1,Length[discon]}];
 			];
 			, {i, 1, Length[exps]}
